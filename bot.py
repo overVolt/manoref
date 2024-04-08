@@ -1,15 +1,14 @@
+from time import sleep
 from telepotpro import Bot
+from threading import Thread
+from datetime import datetime
+from json import load as jsload
 from telepotpro.exception import *
 from pony.orm import db_session, select
 from os.path import abspath, dirname, join
-from json import load as jsload
-from time import sleep
-from threading import Thread
-from datetime import datetime
-
+from modules import keyboards, dbQuery
 from modules.apiHelpers import ApiHelpers
 from modules.database import User, Message
-from modules import keyboards, dbQuery
 
 with open(join(dirname(abspath(__file__)), "settings.json")) as settings_file:
     js_settings = jsload(settings_file)
@@ -81,7 +80,7 @@ def makersFunctions(msg):
         for user in msg["new_chat_members"]:
             newJson = {"from": user}
             updateDB(newJson, userOnly=True)
-    
+
     elif msg.get("from"):
         updateDB(msg)
 
@@ -110,8 +109,12 @@ def reply(msg):
     makersFunctions(msg)
 
     chatId = msg["chat"]["id"]
-    userId = msg["from"]["id"]
-    userName = msg["from"]["first_name"]
+    try:
+        userId = msg["from"]["id"]
+        userName = msg["from"]["first_name"]
+    except Exception:
+        print("Error in msg[from]:")
+        print(msg)
     msgId = msg["message_id"]
     text = msg.get("text")
 
@@ -222,12 +225,9 @@ def reply(msg):
 
     ## PRIVATE CHAT
     if chatId > 0:
-        if text == "/start":
-            bot.sendMessage(chatId, "Ciao, sono il bot di overVolt!", parse_mode="html")
-
-        elif text == "/help":
+        if text == "/start" or text == "/help":
             bot.sendMessage(chatId, "Ciao, sono il bot di overVolt!\n\n"
-                "Il bot è stato riscritto da zero, molti comandi non funzionano e sono stati deprecati.",
+                "<i>Il bot è stato riscritto da zero, molti comandi non funzionano e sono stati deprecati.</i>",
                 parse_mode="html")
 
         elif text == "/referral":
@@ -297,6 +297,11 @@ def reply(msg):
                                            "".format(getUserString(user), userId), parse_mode="HTML", disable_web_page_preview=True)
             sleep(5)
             bot.deleteMessage((chatId, sent["message_id"]))
+
+        elif all(w in text.lower() for w in ["file", "serra"]):
+            bot.sendMessage(chatId, "👀 Stai cercando i file della serra?\n"
+                                    "Sono nel <a href=\"https://t.me/makersITA/907372\">messaggio fissato</a>.",
+                            reply_to_message_id=replyId, parse_mode="HTML")
 
 
         else:
