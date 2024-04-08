@@ -301,7 +301,7 @@ def reply(msg):
         elif all(w in text.lower() for w in ["file", "serra"]):
             bot.sendMessage(chatId, "👀 Stai cercando i file della serra?\n"
                                     "Sono nel <a href=\"https://t.me/makersITA/907372\">messaggio fissato</a>.",
-                            reply_to_message_id=replyId, parse_mode="HTML")
+                            reply_to_message_id=msgId, parse_mode="HTML", disable_web_page_preview=True)
 
 
         else:
